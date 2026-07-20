@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: fct_trips
+    description: >
+      Atomic fact table: one row per cleaned, enriched taxi trip. This is
+      the single source of truth that all other marts build on.
+    columns:
+      - name: trip_id
+        description: Surrogate key generated from trip attributes
+        tests:
+          - unique
+          - not_null
+      - name: pickup_borough
+        description: Borough where the trip started
+      - name: fare_amount
+        description: Metered fare, guaranteed > 0 and < 500 by upstream filtering
+        tests:
+          - not_null
+      - name: total_amount
+        description: Total amount charged to the passenger
+        tests:
+          - not_null
+      - name: speed_mph
+        description: Computed average speed — guaranteed <= 200 by upstream filtering
+
+  - name: mart_daily_borough_revenue
+    description: >
+      One row per day per borough. Built for dashboards showing revenue
+      trends over time, segmented by borough.
+    columns:
+      - name: pickup_date
+        description: Calendar date of pickup
+        tests:
+          - not_null
+      - name: borough
+        description: NYC borough name
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island', 'EWR', 'Unknown']
+      - name: trip_count
+        description: Number of trips that day in that borough
+        tests:
+          - not_null
+
+  - name: mart_zone_performance
+    description: >
+      One row per pickup zone, ranked by revenue within its borough.
+      Built for "top zones" dashboard widgets.
+    columns:
+      - name: zone_name
+        description: Human-readable zone name
+      - name: revenue_rank_in_borough
+        description: 1 = highest-revenue zone in that borough
+        tests:
+          - not_null
+      - name: pct_of_borough_revenue
+        description: This zone's share of total borough revenue (0-100)

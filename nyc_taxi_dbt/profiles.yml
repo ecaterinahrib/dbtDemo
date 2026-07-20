@@ -1,0 +1,21 @@
+# profiles.yml
+# ───────────────────────────────────────────────────────────────────────────
+# This file normally lives in ~/.dbt/profiles.yml, OUTSIDE the project folder
+# (it often contains secrets for real warehouses). For this DuckDB-only
+# project we keep it alongside the project for convenience, DuckDB needs
+# no credentials, so there is nothing sensitive here.
+#
+# To use it as intended, copy this file to ~/.dbt/profiles.yml, or set:
+#   export DBT_PROFILES_DIR=$(pwd)
+# before running any dbt command from inside this project folder.
+# ───────────────────────────────────────────────────────────────────────────
+
+nyc_taxi:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'nyc_taxi.duckdb'      # local DuckDB file, created on first run
+      threads: 4
+      extensions:
+        - httpfs                    # required to read the remote Parquet/CSV files

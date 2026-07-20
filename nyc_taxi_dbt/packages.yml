@@ -1,0 +1,16 @@
+# packages.yml
+# ───────────────────────────────────────────────────────────────────────────
+# OPTIONAL for this project — none of the models currently require dbt_utils
+# (fct_trips uses a built-in md5() hash instead of dbt_utils.generate_surrogate_key
+# so the project works without running "dbt deps" or needing internet access
+# to hub.getdbt.com).
+#
+# Kept here so students can see the standard package-declaration syntax and
+# try it themselves — uncomment and run `dbt deps` to install it, then you
+# can use any dbt_utils macro (e.g. dbt_utils.generate_surrogate_key,
+# dbt_utils.date_spine, dbt_utils.pivot) in your own models.
+# ───────────────────────────────────────────────────────────────────────────
+
+# packages:
+#   - package: dbt-labs/dbt_utils
+#     version: [">=1.1.0", "<2.0.0"]

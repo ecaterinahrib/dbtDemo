@@ -1,0 +1,80 @@
+version: 2
+
+# ───────────────────────────────────────────────────────────────────────────
+# SOURCES
+# A "source" tells dbt about data that already exists outside your project —
+# in this case, public Parquet files on S3. Sources let you:
+#   1. Reference raw data with {{ source('name', 'table') }} instead of
+#      hardcoding URLs everywhere
+#   2. Add freshness checks and documentation to raw data
+#   3. Run source-level tests (e.g. "fare_amount should never be null")
+#
+# The `external_location` key under `meta` is a dbt-duckdb-specific feature.
+# It tells the adapter: when something references this source, compile it
+# to this exact SQL expression instead of looking for a schema.table.
+# This is the standard, documented way to use dbt-duckdb with file sources.
+#
+# NOTE: keep external_location as a SINGLE LINE STRING. Multi-line YAML
+# block scalars here can break dbt's parser in some versions — always
+# verify with `dbt parse` after editing this file.
+# ───────────────────────────────────────────────────────────────────────────
+
+sources:
+  - name: nyc_tlc
+    description: >
+      NYC Taxi & Limousine Commission public trip record data, hosted as
+      Parquet files on a public CloudFront/S3 bucket. Updated monthly by
+      the city. No credentials required.
+    meta:
+      owner: "NYC TLC"
+      url: "https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page"
+
+    tables:
+      - name: yellow_tripdata
+        description: >
+          Yellow taxi trip records for Jan-Mar 2024. Each row is one trip.
+          Resolves via external_location to a read_parquet() call over the
+          three monthly files below.
+        meta:
+          external_location: "read_parquet(['https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet', 'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-02.parquet', 'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-03.parquet'])"
+        columns:
+          - name: tpep_pickup_datetime
+            description: Trip start timestamp
+          - name: tpep_dropoff_datetime
+            description: Trip end timestamp
+          - name: passenger_count
+            description: Number of passengers (nullable)
+          - name: trip_distance
+            description: Trip distance in miles
+          - name: PULocationID
+            description: Pickup TLC zone ID
+          - name: DOLocationID
+            description: Dropoff TLC zone ID
+          - name: payment_type
+            description: "1=Credit, 2=Cash, 3=No charge, 4=Dispute"
+          - name: fare_amount
+            description: Metered fare amount in USD
+            tests:
+              - not_null
+          - name: tip_amount
+            description: Tip amount (credit card trips only)
+          - name: total_amount
+            description: Total amount charged to passenger
+
+      - name: taxi_zone_lookup
+        description: >
+          Official TLC lookup table mapping LocationID to borough and zone
+          name. Small CSV file (265 rows), read directly from its public URL
+          via external_location (see above).
+        meta:
+          external_location: "read_csv('https://d37ci6vzurychx.cloudfront.net/misc/taxi+_zone_lookup.csv', auto_detect=true)"
+        columns:
+          - name: LocationID
+            description: TLC zone ID — primary key
+            tests:
+              - unique
+              - not_null
+          - name: Borough
+            description: NYC borough name
+          - name: Zone
+            description: Human-readable neighbourhood / zone name

@@ -1,0 +1,31 @@
+name: 'nyc_taxi'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'nyc_taxi'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# ───────────────────────────────────────────────────────────────────────────
+# Model configuration by folder (the "staging -> marts" layered architecture)
+# ───────────────────────────────────────────────────────────────────────────
+models:
+  nyc_taxi:
+    staging:
+      +materialized: view        # staging models are cheap views,no storage cost
+      +schema: staging
+    intermediate:
+      +materialized: ephemeral    # intermediate models compile inline, never persisted
+    marts:
+      +materialized: table        # marts are physical tables, fast for BI tools
+      +schema: marts

@@ -1,0 +1,6 @@
+.venv
+*/dbt_packages
+*/logs
+*/dev.duckdb
+*/package-lock.yml
+*/target

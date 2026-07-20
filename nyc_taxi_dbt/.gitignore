@@ -1,0 +1,5 @@
+.venv
+target
+logs
+nyc_taxi.duckdb
+.user.yml
